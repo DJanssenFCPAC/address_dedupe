@@ -1,11 +1,11 @@
 # Mailing List Deduplication
-**Fox Cities PAC — Ticket Services**
+**Fox Cities PAC, Ticket Services**
 
 ---
 
 ## Purpose
 
-Physical mail goes to a household or office, not an individual. When Archtics exports a patron list, the same address often appears under multiple account records — a patron who bought tickets individually, a joint spouse account, an old record with a different name spelling. Sending two or three pieces to the same address wastes postage and looks unprofessional.
+Physical mail goes to a household or office, not an individual. When Archtics exports a patron list, the same address often appears under multiple account records: a patron who bought tickets individually, a joint spouse account, an old record with a different name spelling. Sending two or three pieces to the same address wastes postage and looks unprofessional.
 
 This tool (and the manual Excel procedure below) reduces a raw Archtics export to one record per deliverable address before handing the list to the mail house.
 
@@ -41,7 +41,7 @@ flowchart TD
 
 ### The unit of mail is the address, not the person
 
-Two accounts are considered the same household if they share the same normalized street address, city, and 5-digit ZIP. Name differences are ignored — the address is the only thing that matters for physical mail routing.
+Two accounts are considered the same household if they share the same normalized street address, city, and 5-digit ZIP. Name differences are ignored; the address is the only thing that matters for physical mail routing.
 
 ### Address normalization happens before comparison
 
@@ -49,13 +49,13 @@ Raw addresses from Archtics are inconsistent. `312 E. Pershing Street` and `312 
 
 | Step | Example |
 |---|---|
-| Uppercase everything | `312 e pershing st` → `312 E PERSHING ST` |
-| Strip periods | `E. Pershing St.` → `E Pershing St` |
-| Collapse extra spaces | `312  E  Pershing` → `312 E Pershing` |
-| Expand directionals | `North`, `South`, `East`, `West` → `N`, `S`, `E`, `W` |
-| Expand street types | `Road`→`RD`, `Street`→`ST`, `Avenue`→`AVE`, `Drive`→`DR`, `Lane`→`LN`, `Court`→`CT`, `Boulevard`→`BLVD`, `Circle`→`CIR`, `Place`→`PL`, `Trail`→`TRL`, `Heights`→`HTS` |
-| Normalize County Roads | `County Road`, `Cty Rd`, `Co Rd` → `CTY RD` |
-| Normalize ZIP to 5 digits | `54956-5006` → `54956` |
+| Uppercase everything | `312 e pershing st` -> `312 E PERSHING ST` |
+| Strip periods | `E. Pershing St.` -> `E Pershing St` |
+| Collapse extra spaces | `312  E  Pershing` -> `312 E Pershing` |
+| Expand directionals | `North`, `South`, `East`, `West` -> `N`, `S`, `E`, `W` |
+| Expand street types | `Road`->`RD`, `Street`->`ST`, `Avenue`->`AVE`, `Drive`->`DR`, `Lane`->`LN`, `Court`->`CT`, `Boulevard`->`BLVD`, `Circle`->`CIR`, `Place`->`PL`, `Trail`->`TRL`, `Heights`->`HTS` |
+| Normalize County Roads | `County Road`, `Cty Rd`, `Co Rd` -> `CTY RD` |
+| Normalize ZIP to 5 digits | `54956-5006` -> `54956` |
 
 PO Boxes are a special case: box number is included in the key, so `PO Box 100` and `PO Box 200` at the same ZIP are correctly kept as separate records.
 
@@ -67,9 +67,9 @@ A record with a blank `street_addr_1` cannot receive physical mail and has no me
 
 Priority order (highest to lowest):
 
-1. **Company/organisation record first** — if one record in the group has a `company_name`, it wins over individual-name records. A company address typically represents a purchasing contact who should receive event marketing.
-2. **Most complete record** — counted by number of non-blank fields, with extra weight on `company_name`, `email_addr`, `phone_day`, `name_first`, and `name`. A record with an email address is more valuable to retain than one without.
-3. **Lowest `acct_id`** — tiebreaker. The lower the ID, the longer the patron relationship with the PAC.
+1. **Company/organisation record first:** if one record in the group has a `company_name`, it wins over individual-name records. A company address typically represents a purchasing contact who should receive event marketing.
+2. **Most complete record:** counted by number of non-blank fields, with extra weight on `company_name`, `email_addr`, `phone_day`, `name_first`, and `name`. A record with an email address is more valuable to retain than one without.
+3. **Lowest `acct_id`:** tiebreaker. The lower the ID, the longer the patron relationship with the PAC.
 
 ---
 
@@ -98,8 +98,8 @@ Use this procedure when the Python tool is not available. It follows the same lo
 ### Setup
 
 1. Open the Archtics CSV export in Excel.
-2. **File → Save As** — save as `.xlsx` so formulas work.
-3. Select row 1 → **View → Freeze Panes → Freeze Top Row**.
+2. **File -> Save As** to save as `.xlsx` so formulas work.
+3. Select row 1, then **View -> Freeze Panes -> Freeze Top Row**.
 4. Note the column letters for your data. Based on the standard export order:
 
 | Column | Letter |
@@ -118,21 +118,21 @@ Use this procedure when the Python tool is not available. It follows the same lo
 
 ---
 
-### Step 1 — Remove no-address records
+### Step 1: Remove no-address records
 
 1. Click the `street_addr_1` column header (C) to select it.
-2. **Data → Filter**.
-3. Click the filter arrow → **Filter by condition → Is empty**.
-4. Select all visible rows below the header → right-click → **Delete rows**.
-5. Clear the filter (**Data → Filter** again to toggle off).
+2. **Data -> Filter**.
+3. Click the filter arrow, then **Filter by condition -> Is empty**.
+4. Select all visible rows below the header, right-click, and choose **Delete rows**.
+5. Clear the filter (**Data -> Filter** again to toggle off).
 
 ---
 
-### Step 2 — Normalize street addresses
+### Step 2: Normalize street addresses
 
 This brings `312 E. Pershing Street` and `312 E Pershing St` to the same value.
 
-**A. Add a helper column** — insert a blank column after `street_addr_1` (right-click column D header → Insert). Label it `addr_norm` in row 1.
+**A. Add a helper column.** Insert a blank column after `street_addr_1` (right-click column D header -> Insert). Label it `addr_norm` in row 1.
 
 In D2 enter:
 ```
@@ -140,9 +140,9 @@ In D2 enter:
 ```
 Copy D2 down to all data rows.
 
-**B. Apply abbreviation Find & Replace** — with column D selected, press **Ctrl+H**. Work through this list one row at a time:
+**B. Apply abbreviation Find & Replace.** With column D selected, press **Ctrl+H**. Work through this list one row at a time:
 
-| Find (use whole word — check "Match entire cell contents" OFF, "Match case" OFF) | Replace with |
+| Find (match case OFF, match entire cell OFF) | Replace with |
 |---|---|
 | ` ROAD ` | ` RD ` |
 | ` STREET ` | ` ST ` |
@@ -164,7 +164,7 @@ Copy D2 down to all data rows.
 
 ---
 
-### Step 3 — Build the dedup key
+### Step 3: Build the dedup key
 
 Insert another blank column (label it `dedup_key`). Assuming `addr_norm` is now column D, `city` is I, and `zip` is K:
 
@@ -177,7 +177,7 @@ Insert another blank column (label it `dedup_key`). Assuming `addr_norm` is now 
 
 ---
 
-### Step 4 — Build a completeness score
+### Step 4: Build a completeness score
 
 Insert a column labeled `score`. This approximates the Python tool's winner-selection logic:
 
@@ -186,24 +186,24 @@ Insert a column labeled `score`. This approximates the Python tool's winner-sele
 ```
 
 Breakdown of bonuses:
-- `company_name` non-blank → +3
-- `email_addr` non-blank → +2
-- `phone_day` non-blank → +2
-- `name_first` non-blank → +2
-- `name` non-blank → +2
+- `company_name` non-blank -> +3
+- `email_addr` non-blank -> +2
+- `phone_day` non-blank -> +2
+- `name_first` non-blank -> +2
+- `name` non-blank -> +2
 - Base: count of all non-blank cells in the row
 
 Copy down to all rows.
 
 ---
 
-### Step 5 — Sort
+### Step 5: Sort
 
-**Data → Sort** — add levels in this exact order (Excel applies them top to bottom):
+**Data -> Sort.** Add levels in this exact order (Excel applies them top to bottom):
 
 | Sort by | Order |
 |---|---|
-| `dedup_key` | A → Z |
+| `dedup_key` | A to Z |
 | `score` | Largest to smallest |
 | `acct_id` | Smallest to largest |
 
@@ -211,7 +211,7 @@ After sorting, all records at the same address are grouped together, with the be
 
 ---
 
-### Step 6 — Mark duplicates
+### Step 6: Mark duplicates
 
 Insert a column labeled `keep`. In the first data row (row 2) enter:
 
@@ -225,26 +225,26 @@ This marks the first record in each address group as `KEEP` and all subsequent o
 
 ---
 
-### Step 7 — Delete duplicates
+### Step 7: Delete duplicates
 
 1. Filter the `keep` column to show only `DUP`.
 2. Select all visible rows below the header.
-3. Right-click → **Delete rows**.
+3. Right-click and choose **Delete rows**.
 4. Clear the filter.
 
 ---
 
-### Step 8 — Clean up
+### Step 8: Clean up
 
 Delete the helper columns (`addr_norm`, `dedup_key`, `score`, `keep`) before sending the file to the mail house. The column structure should match the original Archtics export.
 
 ---
 
-### Step 9 — Spot check
+### Step 9: Spot check
 
 Before delivering the file, scan for obvious issues:
-- Any remaining blank `street_addr_1` cells? (Filter → Is empty)
-- Any ZIP codes shorter than 5 digits? (Filter → Text length < 5)
+- Any remaining blank `street_addr_1` cells? (Filter -> Is empty)
+- Any ZIP codes shorter than 5 digits? (Filter -> Text length < 5)
 - Do the record counts look right? Total rows should be noticeably fewer than the original.
 
 ---
@@ -253,8 +253,8 @@ Before delivering the file, scan for obvious issues:
 
 | File | Description |
 |---|---|
-| `<name>_deduped_YYYYMMDD.csv` | Clean list, one record per address — send to mail house |
-| `<name>_flagged_YYYYMMDD.csv` | Addresses Smarty could not confirm as deliverable (Mode B only). Includes `smarty_action` column with a plain-English recommended next step for each record — feed back into Archtics for cleanup |
+| `<name>_deduped_YYYYMMDD.csv` | Clean list, one record per address; ready for the mail house |
+| `<name>_flagged_YYYYMMDD.csv` | Addresses Smarty could not confirm as deliverable (Mode B only). Includes `smarty_action` column with a plain-English recommended next step for each record; feed back into Archtics for cleanup |
 
 ---
 
@@ -266,12 +266,12 @@ python "C:\Tools\dedupe mailing\dedup.py"
 
 **Requirements:** Python 3.10+, `pip install smartystreets-python-sdk`
 
-**Mode A — Deduplicate only:** no API key needed.
+**Mode A: Deduplicate only.** No API key needed.
 
-**Mode B — Deduplicate + verify:** requires a free Smarty account (smarty.com). After deduplication, every address is checked against USPS data. Addresses Smarty cannot confirm as deliverable are written to the flagged file instead of the clean output. Free tier covers 250 lookups/month; pay-as-you-go is ~$0.007/lookup beyond that.
+**Mode B: Deduplicate + verify.** Requires a free Smarty account (smarty.com). After deduplication, every address is checked against USPS data. Addresses Smarty cannot confirm as deliverable are written to the flagged file instead of the clean output. Free tier covers 250 lookups/month; pay-as-you-go is ~$0.007/lookup beyond that.
 
 ---
 
 ## Support
 
-Dallas Janssen — Ticket Services, Fox Cities Performing Arts Center
+Dallas Janssen, Ticket Services, Fox Cities Performing Arts Center
