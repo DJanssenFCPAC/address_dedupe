@@ -11,6 +11,32 @@ This tool (and the manual Excel procedure below) reduces a raw Archtics export t
 
 ---
 
+## At a glance
+
+```mermaid
+flowchart TD
+    A([Load Archtics CSV]) --> B{Has street_addr_1?}
+    B -- No --> DROP([Dropped - cannot mail])
+    B -- Yes --> NORM[Normalize address\nuppercase · abbreviate · strip punctuation]
+    NORM --> GROUP[Group records by\nnormalized address + city + ZIP]
+    GROUP --> DUP{Multiple records\nat this address?}
+    DUP -- No --> PASS[Record passes through]
+    DUP -- Yes --> CO{Any record has\ncompany_name?}
+    CO -- Yes --> W1[Company record = winner]
+    CO -- No --> W2[Most complete record = winner\ntiebreak: lowest acct_id]
+    W1 --> DISC([Others discarded])
+    W2 --> DISC
+    W1 --> PASS
+    W2 --> PASS
+    PASS --> MODE{Mode B:\nSmarty verify?}
+    MODE -- No --> CLEAN([Clean output CSV])
+    MODE -- Yes --> USPS{USPS delivery\nconfirmed? DPV Y / S / D}
+    USPS -- Yes --> CLEAN
+    USPS -- No --> FLAG([Flagged CSV\nwith recommended action])
+```
+
+---
+
 ## Deduplication philosophy
 
 ### The unit of mail is the address, not the person
