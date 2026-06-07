@@ -17,6 +17,7 @@ Mailing lists exported from Archtics frequently contain multiple patron records 
 | File | Description |
 |---|---|
 | `dedup.py` | Main application — run this |
+| `README.md` | Deduplication philosophy and manual Excel procedure |
 | `PROJECT.md` | This file |
 
 ### Outputs (generated at runtime)
@@ -31,7 +32,7 @@ Mailing lists exported from Archtics frequently contain multiple patron records 
 ## Requirements
 
 ```
-pip install ttkbootstrap smartystreets-python-sdk
+pip install smartystreets-python-sdk
 ```
 
 Python 3.10+ recommended. Tkinter must be available (`python3-tk` on Linux).
@@ -63,8 +64,10 @@ Free tier: 250 lookups/month. Pay-as-you-go ~$0.007/lookup beyond that (~$28 for
 
 1. **Address normalization** — uppercases, strips punctuation, standardizes abbreviations (Road → RD, Street → ST, County Road → CTY RD, directionals N/S/E/W, etc.) and normalizes ZIP to 5-digit base.
 2. **Dedup key** — built from `street_addr_1 + city + zip`. PO Boxes include `street_addr_2` in the key so different box numbers at the same ZIP don't incorrectly merge.
-3. **Winner selection** — when multiple records share an address, the keeper is chosen by:
-   - **Completeness score** (most non-blank fields wins; bonus weight on `email_addr`, `phone_day`, `name_first`, `name`)
+3. **Records with no street address** (`street_addr_1` blank) are dropped before deduplication — they cannot receive physical mail.
+4. **Winner selection** — when multiple records share an address, the keeper is chosen by:
+   - **Company record first** — any record with a `company_name` beats an individual-name record
+   - **Completeness score** (most non-blank fields wins; bonus weight on `company_name`, `email_addr`, `phone_day`, `name_first`, `name`)
    - **Tiebreak:** lowest `acct_id` (longest patron relationship)
 
 ### Smarty verification
@@ -79,7 +82,14 @@ Each address in the deduped list is sent to Smarty's US Street API. The response
 | `N` | Not confirmed | Flagged output |
 | _(no result)_ | No match found | Flagged output |
 
-The flagged CSV includes three extra columns: `smarty_status`, `smarty_dpv_code`, and `smarty_addr` (Smarty's standardized version of the address) for Archtics cleanup reference.
+The flagged CSV includes four extra columns:
+
+| Column | Content |
+|---|---|
+| `smarty_status` | Human-readable result (e.g. "Not confirmed") |
+| `smarty_dpv_code` | Raw USPS DPV code (`N` or blank) |
+| `smarty_addr` | Smarty's standardized address, if a partial match was found |
+| `smarty_action` | Plain-English recommended next step for Archtics cleanup |
 
 ---
 
@@ -103,9 +113,7 @@ The flagged CSV includes three extra columns: `smarty_status`, `smarty_dpv_code`
 
 ## Related procedure
 
-A step-by-step **manual Excel procedure** covering the same deduplication logic (for cases where the Python tool isn't available) is documented in:
-
-`MailingList_Dedup_Procedure.docx`
+A step-by-step **manual Excel procedure** covering the same deduplication logic (for cases where the Python tool isn't available) is documented in `README.md`.
 
 ---
 

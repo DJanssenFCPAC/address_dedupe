@@ -14,7 +14,7 @@ Outputs
                                          (feed back into Archtics for cleanup)
 
 Install deps:
-  pip install ttkbootstrap smartystreets-python-sdk
+  pip install smartystreets-python-sdk
 """
 
 import csv
@@ -111,6 +111,13 @@ DPV_LABELS = {
     'N':  'Not confirmed',      # no match
     '':   'No result',
 }
+
+def _smarty_action(status, dpv_code, smarty_addr):
+    if status == 'API error':
+        return 'API error - re-run verification; this address was not checked'
+    if smarty_addr:
+        return f'Partial USPS match - update address in Archtics to: {smarty_addr}'
+    return 'No USPS match - contact patron to verify address, or remove from list'
 
 def build_smarty_client(auth_id, auth_token):
     from smartystreets_python_sdk import StaticCredentials, ClientBuilder
@@ -217,10 +224,10 @@ def run_pipeline(input_path, output_path, flagged_path,
         groups = {}
         no_addr = 0
         for row in rows:
-            key = make_dedup_key(row)
-            if not key.replace('|', '').strip():
+            if not row.get('street_addr_1', '').strip():
                 no_addr += 1
                 continue
+            key = make_dedup_key(row)
             groups.setdefault(key, []).append(row)
 
         if no_addr:
@@ -273,6 +280,8 @@ def run_pipeline(input_path, output_path, flagged_path,
                         flagged_row['smarty_status']   = r['status']
                         flagged_row['smarty_dpv_code'] = r['dpv_code']
                         flagged_row['smarty_addr']     = r['smarty_addr']
+                        flagged_row['smarty_action']   = _smarty_action(
+                            r['status'], r['dpv_code'], r['smarty_addr'])
                         flagged.append(flagged_row)
                         if r['status'] == 'API error':
                             cnt['err'] += 1
@@ -304,7 +313,7 @@ def run_pipeline(input_path, output_path, flagged_path,
 
         # ── Write flagged output ──────────────────────────────────────────────
         if flagged:
-            flagged_fields = list(fieldnames) + ['smarty_status', 'smarty_dpv_code', 'smarty_addr']
+            flagged_fields = list(fieldnames) + ['smarty_status', 'smarty_dpv_code', 'smarty_addr', 'smarty_action']
             log_fn(f"Writing {len(flagged):,} flagged records…")
             with open(flagged_path, 'w', newline='', encoding='utf-8') as f:
                 writer = csv.DictWriter(f, fieldnames=flagged_fields, extrasaction='ignore')

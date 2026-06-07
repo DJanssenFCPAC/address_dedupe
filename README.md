@@ -228,7 +228,7 @@ Before delivering the file, scan for obvious issues:
 | File | Description |
 |---|---|
 | `<name>_deduped_YYYYMMDD.csv` | Clean list, one record per address — send to mail house |
-| `<name>_flagged_YYYYMMDD.csv` | Addresses Smarty could not confirm as deliverable (Mode B only) — feed back into Archtics for cleanup |
+| `<name>_flagged_YYYYMMDD.csv` | Addresses Smarty could not confirm as deliverable (Mode B only). Includes `smarty_action` column with a plain-English recommended next step for each record — feed back into Archtics for cleanup |
 
 ---
 
